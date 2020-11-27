@@ -1,0 +1,82 @@
+%MOM method on a wire of radius 0.005*lamda and length 0.1*lamda with 5 segments
+
+clc;
+clear all;
+close all;
+
+
+        wv=1;
+        a = 0.005 *wv ;
+        N = 5;
+        e0=8.85*10^-12;
+        L = 0.1*wv ;
+        del = L / N;
+        w=2*pi*((3*10^8)./wv);
+        beta = 2 *pi /wv;
+
+     for m= 1 : 1 : N;
+
+         for n = 1 : 1: N;
+
+
+        z_m = del * (m - 0.5);
+
+        z1= (n-1)*del;
+        z2= n*del;
+
+        syms x
+        R(m,n)=sqrt((z_m-x)^2+a^2);
+        b (m,n)=-1.*((4*pi*e0*1i*w).^(-1)).*((1/R(m,n)).^5).*(exp ( -1i * beta .* R(m,n) ) ...
+        .*((1 + 1i .* beta .* R(m,n)).*( 2 .* (R(m,n)^2) - 3 .* a.^2 )...
+        + ((beta .^2 ).*( R(m,n).^2 ).* (a.^2))) ) ;
+
+          Z(m,n)=int(b(m,n),x,z1,z2);
+            end
+        end
+     %IMPEDENCE MATRIX
+        Z=double(Z)
+        rho=abs(Z)
+        theta=angle(Z)*180/pi
+
+        Zi=inv(Z);
+          V=[0+0i
+             0+0i
+             50+0i
+             0+0i
+             0+0i]  ;
+
+     %CURRENT MATRIX
+         I=Zi*V;
+
+          rho1=abs(I)
+          theta1=angle(I)*180/pi
+
+      %COMPARISON WITH FEKO RESULTS
+          p=1:1:N;
+
+           figure(1)
+           plot(p,real(I))
+
+          hold on
+          Ir_f=[0.00000213
+                0.000004768
+                0.00000528
+                0.000004768
+                0.00000213];
+          plot(p,real(Ir_f))
+          legend('real(I) in MATLAB','real(I) in FEKO')
+          xlabel('segment')
+          ylabel('real part of current')
+
+          figure(2)
+          plot(p,imag(I))
+          hold on
+          Ii_f=[0.000327
+                0.00108
+                0.0014
+                0.00108
+                0.000327];
+          plot(p,real(Ii_f))
+          legend('img(I) in MATLAB','img(I) in FEKO')
+          xlabel('segment')
+          ylabel('imaginary part of current')
