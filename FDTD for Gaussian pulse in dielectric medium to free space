@@ -1,0 +1,63 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FDTD Implements simulation of a Gaussian Pulse% over T time steps.
+% Dielectric medium begin and end can be specified with the code.
+% Here cell 0 to 200 it is dielectric medium, remaining are free space
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clc
+close all
+clear all
+max_time = 1500;
+max_space = 1500;
+E = zeros(max_space,1); %Electric array
+H = E;                  %Magnetic array
+dielectric_begin = 0;
+dielectric_end = 200;
+dielectic_space = ones(max_space,1);
+eta = 1;               %Dielectric constant- free space
+epsilon = 9;           %Dielectric constant- resistance of material to electric field
+etaeps = eta/epsilon;
+%Initalize BC conditions
+E_low_m2 = 0;
+E_low_m1 = 0;
+E_high_m2 = 0;
+E_high_m1 = 0;
+%Initialize pulse variables
+spread = 12;
+place_pulse = 500;
+center_problem_space = max_space/2;
+t0 = 40;
+%Dielectric Medium - wave velocity slows as it travels through the medium
+
+for i = 1:max_space
+    if ( i >= dielectric_begin && i <= dielectric_end )
+    dielectric_space(i) = etaeps;
+    else
+    dielectric_space(i) = eta;
+    end
+end
+%Main Loop
+for n = 1:max_time
+for k = 2:max_space
+E(k) = E(k)+dielectric_space(k)*(H(k-1)-H(k));
+end
+pulse =2* exp(-.5*((t0-n)/spread)^2);
+
+E(place_pulse) = E(place_pulse) + pulse;
+E(1) = E_low_m2;
+E_low_m2 = E_low_m1;
+E_low_m1 = E(2);
+E(max_space) = E_high_m2;
+E_high_m2 = E_high_m1;
+E_high_m1 = E(max_space-1);
+for j = 1:max_space-1
+H(j) = H(j) +eta*(E(j)-E(j+1));
+end
+
+figure(1)
+plot(E)
+title('Q3')
+xlabel('Cell(i)')
+ylabel('Amplitude of electric field E')
+axis([0 1200 -1.2 1.2])
+pause(0.00005)
+end
